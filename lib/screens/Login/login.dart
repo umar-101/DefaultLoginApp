@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jsontoclass/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../size_config.dart';
 import 'home.dart';
@@ -20,6 +21,27 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final passController = TextEditingController();
+
+  SharedPreferences logindata;
+  bool newuser;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    check_if_already_login();
+  }
+
+  void check_if_already_login() async {
+    logindata = await SharedPreferences.getInstance();
+    newuser = (logindata.getBool('login') ?? true);
+    print(newuser);
+    if (newuser == false) {
+      Navigator.pushReplacement(
+          context, new MaterialPageRoute(builder: (context) => HomeScreen()));
+    }
+  }
+
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
@@ -28,34 +50,22 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  checkUser() {
-    var username = nameController.text;
-    var password = passController.text;
-
-    if (users.contains(username) && passwords.contains(password)) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFF232F3E),
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              SizedBox(height: 30),
-              Image(
-                image: AssetImage('assets/images/appicon.png'),
-              ),
-              SizedBox(height: 20),
-              SizedBox(height: 20),
-              Text('LogIn', style: kLargeHeading.copyWith(color: kBlackColor)),
+              SizedBox(
+                  height: getProportionateScreenHeight(
+                      SizeConfig.screenHeight * 0.30)),
+              Text('LogIn',
+                  style:
+                      kLargeHeading.copyWith(color: kWhiteColor, fontSize: 28)),
               TextInputField(
                 obscureText: false,
                 hinttext: 'Enter your username',
@@ -84,12 +94,18 @@ class _LoginScreenState extends State<LoginScreen> {
               GestureDetector(
                 onTap: () {
                   //listCheck();
+                  String username = nameController.text;
+                  String password = passController.text;
                   if (_formKey.currentState.validate()) {
-                    if (checkUser() == true) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => HomeScreen()),
-                      );
+                    if ((users.contains(username) &&
+                            passwords.contains(password)) ==
+                        true) {
+                      logindata.setBool('login', false);
+                      logindata.setString('username', username);
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => HomeScreen()));
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('User not found')),
@@ -101,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: getProportionateScreenWidth(140),
                   height: 45,
                   decoration: BoxDecoration(
-                    color: kSecondaryColor.withOpacity(0.7),
+                    color: Colors.red,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Center(
@@ -148,12 +164,12 @@ class TextInputField extends StatelessWidget {
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                  width: 1,
-                  color: Color(0xFF3C54B4),
-                  style: BorderStyle.solid)),
+                  width: 1, color: Colors.white60, style: BorderStyle.solid)),
           child: TextFormField(
+            style: TextStyle(color: Colors.white),
             decoration: InputDecoration(
                 hintText: hinttext,
+                hintStyle: TextStyle(color: Colors.white60),
                 contentPadding: EdgeInsets.all(10),
                 border: InputBorder.none),
             onChanged: (value) {},
